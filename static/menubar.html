@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TinyImage</title>
+  <link rel="stylesheet" href="./styles/normalize.css">
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+    html {
+      color: rgba(255, 255, 255, 0.8);
+      background-image: linear-gradient(to bottom, #563d7c 0, #6f5499 100%);
+    }
+    #app {
+      width: 100%;
+      height: 100%;
+    }
+    #app::before {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 250px;
+      height: 250px;
+      margin: -130px 0 0 -125px;
+      border: 3px dashed rgba(255, 255, 255, 0.5);
+      border-radius: 15px;
+      transition: 0.25s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <input id="select" type="file" multiple />
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron')
+
+    const $select = document.getElementById('select')
+    if ($select) {
+      $select.addEventListener('change', ev => {
+        const target = ev.target
+        if (target.files) {
+          const fileList = Object.values(target.files).map(file => file.path)
+          ipcRenderer.send('postMessage', {
+            bridgeName: 'minify',
+            data: fileList,
+          })
+        } else {
+          console.warn('文件列表获取异常')
+        }
+      }, false)
+    }
+
+    ipcRenderer.addListener('recevieMessage', () => {
+      console.log('压缩成功')
+    })
+  </script>
+</body>
+</html>
