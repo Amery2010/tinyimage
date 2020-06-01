@@ -1,43 +1,43 @@
 import path from 'path'
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
-// import { menubar } from 'menubar'
+import { menubar } from 'menubar'
 import minify from './libs/minify'
 
 function createWindow () {
   // 创建浏览器窗口
-  const mainWindow = new BrowserWindow({
-    width: 1024,
-    height: 768,
-    webPreferences: {
-      webSecurity: false,
-      contextIsolation: true,
-      nodeIntegration: true,
-      preload: path.join(__dirname, 'preload.js'),
-    },
+  // const mainWindow = new BrowserWindow({
+  //   width: 1024,
+  //   height: 768,
+  //   webPreferences: {
+  //     webSecurity: false,
+  //     contextIsolation: true,
+  //     nodeIntegration: true,
+  //     preload: path.join(__dirname, 'preload.js'),
+  //   },
+  // })
+
+  // mainWindow.loadFile('../static/menubar.html')
+
+  const menuBar = menubar({
+    index: `file://${path.join(__dirname, '../static/menubar.html')}`,
+    browserWindow: {
+      title: 'TinyImage',
+      width: 475,
+      height: 400,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: true,
+        preload: path.join(__dirname, 'preload.js'),
+      },
+    }
+  })
+  menuBar.on('ready', () => {
+    console.log('app is ready');
+    // your app code here
   })
 
-  mainWindow.loadFile('../static/menubar.html')
-
-  // const menuBar = menubar({
-  //   index: `file://${path.join(__dirname, '../static/menubar.html')}`,
-  //   browserWindow: {
-  //     title: 'TinyImage',
-  //     width: 475,
-  //     height: 400,
-  //     webPreferences: {
-  //       nodeIntegration: true,
-  //       contextIsolation: true,
-  //       preload: path.join(__dirname, 'preload.js'),
-  //     },
-  //   }
-  // })
-  // menuBar.on('ready', () => {
-  //   console.log('app is ready');
-  //   // your app code here
-  // })
-
   // 打开开发者工具
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 }
 
 ipcMain.on('ondragstart', (ev, filePath) => {
@@ -49,16 +49,28 @@ ipcMain.on('ondragstart', (ev, filePath) => {
   minify(filePath)
 })
 
-ipcMain.addListener('postMessage', async ({ sender }, message) => {
+ipcMain.on('postMessage', async (event, message) => {
   switch (message.bridgeName) {
     case 'minify':
       try {
-        await minify(message.data)
-        sender.send('recevieMessage', {
-          bridgeName: 'minify',
+        const result = await minify(message.data)
+        const data = result.map(item => {
+          return {
+            srcPath: item.sourcePath,
+            destPath: item.destinationPath,
+            length: item.data.length,
+          }
         })
+        event.reply('receiveMessage', {
+          bridgeName: 'minify',
+          cid: message.cid,
+          data,
+        },)
       } catch (err) {
-        console.error(err)
+        event.reply('receiveMessage', {
+          bridgeName: 'minify',
+          error: { code: 500, message: err.message },
+        })
       }
       break
     default:
