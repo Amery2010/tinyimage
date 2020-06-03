@@ -8,10 +8,9 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "start": "tsc && electron ./build/main.js",
-    "watch": "tsc -w",
+    "start": "tsc && gulp build && electron ./build/electron/main.js",
     "lint": "eslint ./src --fix --ext .ts",
-    "build": "rimraf ./build && tsc"
+    "build": "rimraf ./build && tsc && gulp build"
   },
   "dependencies": {
     "imagemin": "^7.0.1",
@@ -33,14 +32,19 @@
     "@typescript-eslint/parser": "^3.0.2",
     "electron": "^9.0.0",
     "eslint": "^7.1.0",
+    "gulp": "^4.0.2",
+    "gulp-sass": "^4.1.0",
     "rimraf": "^3.0.2",
+    "rollup": "^2.12.0",
+    "sass": "^1.26.7",
     "typescript": "^3.9.3"
   },
   "eslintConfig": {
     "root": true,
     "env": {
       "node": true,
-      "browser": true
+      "browser": true,
+      "es6": true
     },
     "extends": [
       "eslint:recommended"

@@ -1,40 +1,40 @@
 import path from 'path'
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
-import { menubar } from 'menubar'
+// import { menubar } from 'menubar'
 import minify from './libs/minify'
 
 function createWindow () {
   // 创建浏览器窗口
-  // const mainWindow = new BrowserWindow({
-  //   width: 1024,
-  //   height: 768,
-  //   webPreferences: {
-  //     webSecurity: false,
-  //     contextIsolation: true,
-  //     nodeIntegration: true,
-  //     preload: path.join(__dirname, 'preload.js'),
-  //   },
+  const mainWindow = new BrowserWindow({
+    width: 360,
+    height: 360,
+    webPreferences: {
+      webSecurity: true,
+      contextIsolation: true,
+      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  })
+
+  mainWindow.loadFile('../index.html')
+
+  // const menuBar = menubar({
+  //   index: `file://${path.join(__dirname, '../index.html')}`,
+  //   browserWindow: {
+  //     title: 'TinyImage',
+  //     width: 475,
+  //     height: 400,
+  //     webPreferences: {
+  //       nodeIntegration: true,
+  //       contextIsolation: true,
+  //       preload: path.join(__dirname, 'preload.js'),
+  //     },
+  //   }
   // })
-
-  // mainWindow.loadFile('../static/menubar.html')
-
-  const menuBar = menubar({
-    index: `file://${path.join(__dirname, '../static/menubar.html')}`,
-    browserWindow: {
-      title: 'TinyImage',
-      width: 475,
-      height: 400,
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: true,
-        preload: path.join(__dirname, 'preload.js'),
-      },
-    }
-  })
-  menuBar.on('ready', () => {
-    console.log('app is ready');
-    // your app code here
-  })
+  // menuBar.on('ready', () => {
+  //   console.log('app is ready');
+  //   // your app code here
+  // })
 
   // 打开开发者工具
   // mainWindow.webContents.openDevTools()
