@@ -6,8 +6,8 @@ import minify from './libs/minify'
 function createWindow () {
   // 创建浏览器窗口
   const mainWindow = new BrowserWindow({
-    width: 360,
-    height: 360,
+    width: 860,
+    height: 860,
     webPreferences: {
       webSecurity: true,
       contextIsolation: true,
@@ -37,7 +37,7 @@ function createWindow () {
   // })
 
   // 打开开发者工具
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 }
 
 ipcMain.on('ondragstart', (ev, filePath) => {

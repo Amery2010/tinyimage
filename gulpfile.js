@@ -1,21 +1,28 @@
 const gulp = require('gulp')
 const rollup = require('rollup')
+const rollupTypescript = require('@rollup/plugin-typescript')
+const rollupCommonjs = require('@rollup/plugin-commonjs')
 const sass = require('gulp-sass')
 
 gulp.task('script', () => {
   return rollup.rollup({
-    input: './build/renderer.js',
+    input: './src/renderer.ts',
+    plugins: [
+      rollupTypescript(),
+      rollupCommonjs({ extensions: ['.js', '.ts'] }),
+    ]
   }).then(bundle => {
     return bundle.write({
-      file: './build/bundle.js',
+      dir: 'build',
       format: 'umd',
+      name: 'bundle',
       sourcemap: true,
     })
   })
 })
 
 gulp.task('style', () => {
-  return gulp.src('./src/sass/**/*.scss')
+  return gulp.src('./src/ui/sass/**/*.scss')
     .pipe(sass().on('error', sass.logError))
     .pipe(gulp.dest('./build/styles'))
 })
