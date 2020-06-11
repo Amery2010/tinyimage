@@ -1,5 +1,5 @@
 const $select = document.getElementById('select')
-if ($select) {
+if ($select !== null) {
   $select.addEventListener('change', ev => {
     const target = ev.target as HTMLInputElement
     if (target.files) {
@@ -11,14 +11,13 @@ if ($select) {
       console.warn('文件列表获取异常')
     }
   }, false)
+  const $selectFiles = document.querySelector('.select-files')
+  if ($selectFiles !== null) {
+    $selectFiles.addEventListener('click', (ev) => {
+      ev.preventDefault()
+      console.log(123)
+    }, false)
+  }
 }
 
-const $selectFiles = document.querySelector('.select-files')
-console.log($selectFiles && $select)
-if ($selectFiles && $select) {
-  $selectFiles.addEventListener('click', (ev) => {
-    ev.preventDefault()
-    alert(123)
-    $select.click()
-  }, false)
-}
+
