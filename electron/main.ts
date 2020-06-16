@@ -1,5 +1,5 @@
 import path from 'path'
-import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 // import { menubar } from 'menubar'
 import minify from './libs/minify'
 
@@ -16,7 +16,7 @@ function createWindow () {
     },
   })
 
-  mainWindow.loadFile('../index.html')
+  mainWindow.loadFile(path.join(__dirname, '../index.html'))
 
   // const menuBar = menubar({
   //   index: `file://${path.join(__dirname, '../index.html')}`,
@@ -40,14 +40,14 @@ function createWindow () {
   mainWindow.webContents.openDevTools()
 }
 
-ipcMain.on('ondragstart', (ev, filePath) => {
-  ev.sender.startDrag({
-    file: filePath,
-    icon: nativeImage.createFromPath(path.join(__dirname, '../static/icons/logo@2x.png')),
-  })
+// ipcMain.on('ondragstart', (ev, filePath) => {
+//   ev.sender.startDrag({
+//     file: filePath,
+//     icon: nativeImage.createFromPath(path.join(__dirname, '../static/icons/logo@2x.png')),
+//   })
 
-  minify(filePath)
-})
+//   minify(filePath)
+// })
 
 ipcMain.on('postMessage', async (event, message) => {
   switch (message.bridgeName) {
