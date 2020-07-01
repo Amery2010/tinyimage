@@ -22,8 +22,10 @@ document.addEventListener('drop', ev => {
   ev.preventDefault()
   const fileList = ev.dataTransfer?.files
   if (fileList) {
-    window.nativeBridge.invoke('minify', extractFileListPath(fileList), () => {
-      alert('压缩成功！')
+    extractFileListPath(fileList).forEach(path => {
+      window.nativeBridge.invoke('minify', [path], () => {
+        console.log(path + ' 压缩成功！')
+      })
     })
   } else {
     console.warn('文件列表获取异常')
@@ -37,8 +39,10 @@ function App() {
     const target = ev.currentTarget as HTMLInputElement
     const fileList = target.files
     if (fileList) {
-      window.nativeBridge.invoke('minify', extractFileListPath(fileList), () => {
-        alert('压缩成功！')
+      extractFileListPath(fileList).forEach(path => {
+        window.nativeBridge.invoke('minify', [path], () => {
+          console.log(path + ' 压缩成功！')
+        })
       })
     } else {
       console.warn('文件列表获取异常')

@@ -49,23 +49,24 @@ function createWindow () {
 //   minify(filePath)
 // })
 
-ipcMain.on('postMessage', async (event, message) => {
+ipcMain.on('postMessage', (event, message) => {
   switch (message.bridgeName) {
     case 'minify':
       try {
-        const result = await minify(message.data)
-        const data = result.map(item => {
-          return {
-            srcPath: item.sourcePath,
-            destPath: item.destinationPath,
-            length: item.data.length,
-          }
+        minify(message.data).then(result => {
+          const data = result.map(item => {
+            return {
+              srcPath: item.sourcePath,
+              destPath: item.destinationPath,
+              length: item.data.length,
+            }
+          })
+          event.reply('receiveMessage', {
+            bridgeName: 'minify',
+            cid: message.cid,
+            data,
+          })
         })
-        event.reply('receiveMessage', {
-          bridgeName: 'minify',
-          cid: message.cid,
-          data,
-        },)
       } catch (err) {
         event.reply('receiveMessage', {
           bridgeName: 'minify',

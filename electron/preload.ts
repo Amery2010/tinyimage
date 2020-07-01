@@ -46,6 +46,24 @@ declare global {
 let cid = 0
 const callbacks: Callbacks = {}
 
+ipcRenderer.on('receiveMessage', (_, message): void => {
+  const { data, cid, error } = message
+  // 如果存在方法名，则调用对应函数
+  if (typeof cid === 'number' && cid >= 1) {
+    if (typeof error !== 'undefined') {
+      callbacks[cid](error)
+      delete callbacks[cid]
+    } else if (callbacks[cid]) {
+      callbacks[cid](null, data)
+      delete callbacks[cid]
+    } else {
+      throw new Error('Invalid callback id')
+    }
+  } else {
+    throw new Error('message format error')
+  }
+})
+
 // 注册 nativeBridge
 contextBridge.exposeInMainWorld('nativeBridge', {
   invoke<T>(bridgeName: string, data: T, callback: BridgeCallback): void {
@@ -66,22 +84,5 @@ contextBridge.exposeInMainWorld('nativeBridge', {
     callbacks[cid] = callback
     message.cid = cid
     ipcRenderer.send('postMessage', message)
-    ipcRenderer.once('receiveMessage', (_, message): void => {
-      const { data, cid, error } = message
-      // 如果存在方法名，则调用对应函数
-      if (typeof cid === 'number' && cid >= 1) {
-        if (typeof error !== 'undefined') {
-          callbacks[cid](error)
-          delete callbacks[cid]
-        } else if (callbacks[cid]) {
-          callbacks[cid](null, data)
-          delete callbacks[cid]
-        } else {
-          throw new Error('Invalid callback id')
-        }
-      } else {
-        throw new Error('message format error')
-      }
-    })
   },
 })
