@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {
     "start": "react-scripts start",
-    "build:electron": "tsc -p electron/tsconfig.json",
-    "build": "react-scripts build && tsc -p electron/tsconfig.json",
     "electron": "electron build/electron/main.js",
+    "build": "react-scripts build && tsc -p electron/tsconfig.json",
+    "build:electron": "tsc -p electron/tsconfig.json",
     "test": "react-scripts test"
   },
   "dependencies": {
