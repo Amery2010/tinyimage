@@ -14,21 +14,35 @@ function extractFileListPath (fileList: FileList) {
   return fileListPath
 }
 
+function compress (fileList: FileList | null) {
+  if (fileList) {
+    const total = fileList.length
+    let count = 0
+    extractFileListPath(fileList).forEach(path => {
+      window.nativeBridge.invoke('minify', path, (err) => {
+        if (err) {
+          alert(err.message)
+        } else {
+          console.log(path + ' 压缩成功！')
+        }
+        if (++count === total) {
+          alert('已完成全部文件的压缩！')
+        }
+      })
+    })
+  } else {
+    console.warn('文件列表获取异常')
+  }
+}
+
 document.addEventListener('dragover', ev => {
   ev.preventDefault()
 }, false)
 
 document.addEventListener('drop', ev => {
   ev.preventDefault()
-  const fileList = ev.dataTransfer?.files
-  if (fileList) {
-    extractFileListPath(fileList).forEach(path => {
-      window.nativeBridge.invoke('minify', [path], () => {
-        console.log(path + ' 压缩成功！')
-      })
-    })
-  } else {
-    console.warn('文件列表获取异常')
+  if (ev.dataTransfer) {
+    compress(ev.dataTransfer.files)
   }
 }, false)
 
@@ -37,16 +51,7 @@ function App() {
 
   const handleFilesChange = (ev: React.ChangeEvent) => {
     const target = ev.currentTarget as HTMLInputElement
-    const fileList = target.files
-    if (fileList) {
-      extractFileListPath(fileList).forEach(path => {
-        window.nativeBridge.invoke('minify', [path], () => {
-          console.log(path + ' 压缩成功！')
-        })
-      })
-    } else {
-      console.warn('文件列表获取异常')
-    }
+    compress(target.files)
   }
   const handleSelectFiles = () => {
     if (fileInputElem.current) {

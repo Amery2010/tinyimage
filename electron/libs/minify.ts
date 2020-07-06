@@ -6,20 +6,37 @@ import imageminSvgo from 'imagemin-svgo'
 import imageminMozjpeg from 'imagemin-mozjpeg'
 
 type Result = {
-  data: Buffer;
-  sourcePath: string;
-  destinationPath: string;
+  status: boolean,
+  data?: imagemin.Result[];
+  error?: string;
 }
 
-async function minify(filesPath: string[]): Promise<Result[]> {
+async function minify(filesPath: string | string[], output?: string): Promise<Result> {
+  filesPath = typeof filesPath === 'string' ? [filesPath] : filesPath
   return await imagemin(filesPath, {
-    destination: path.join(path.dirname(filesPath[0]), './output'),
+    destination: output || path.join(path.dirname(filesPath[0]), './output'),
     plugins: [
       imageminMozjpeg({ quality: 80 }),
-      imageminPngquant(),
+      imageminPngquant({
+        speed: 1,
+        strip: true,
+        quality: [0.4, 0.6],
+      }),
       imageminSvgo(),
-      imageminGifsicle(),
+      imageminGifsicle({
+        optimizationLevel: 3,
+      }),
     ]
+  }).then((file) => {
+    return {
+      status: true,
+      data: file,
+    }
+  }).catch(err => {
+    return {
+      status: false,
+      error: err.toString(),
+    }
   })
 }
 

@@ -6,8 +6,8 @@ import minify from './libs/minify'
 function createWindow () {
   // 创建浏览器窗口
   const mainWindow = new BrowserWindow({
-    width: 860,
-    height: 860,
+    width: 400,
+    height: 400,
     webPreferences: {
       webSecurity: true,
       contextIsolation: true,
@@ -37,42 +37,55 @@ function createWindow () {
   // })
 
   // 打开开发者工具
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 }
-
-// ipcMain.on('ondragstart', (ev, filePath) => {
-//   ev.sender.startDrag({
-//     file: filePath,
-//     icon: nativeImage.createFromPath(path.join(__dirname, '../static/icons/logo@2x.png')),
-//   })
-
-//   minify(filePath)
-// })
 
 ipcMain.on('postMessage', (event, message) => {
   switch (message.bridgeName) {
     case 'minify':
-      try {
-        minify(message.data).then(result => {
-          const data = result.map(item => {
-            return {
-              srcPath: item.sourcePath,
-              destPath: item.destinationPath,
-              length: item.data.length,
-            }
-          })
+      minify(message.data).then(result => {
+        if (result.status) {
+          if (result.data) {
+            const data = result.data.map(item => {
+              return {
+                srcPath: item.sourcePath,
+                destPath: item.destinationPath,
+                length: item.data.length,
+              }
+            })
+            event.reply('receiveMessage', {
+              bridgeName: 'minify',
+              cid: message.cid,
+              data,
+            })
+          } else {
+            event.reply('receiveMessage', {
+              bridgeName: 'minify',
+              cid: message.cid,
+              error: {
+                code: 501,
+                message: '压缩失败！'
+              },
+            })
+          }
+        } else {
           event.reply('receiveMessage', {
             bridgeName: 'minify',
             cid: message.cid,
-            data,
+            error: {
+              code: 500,
+              message: result.error
+            },
           })
-        })
-      } catch (err) {
-        event.reply('receiveMessage', {
-          bridgeName: 'minify',
-          error: { code: 500, message: err.message },
-        })
-      }
+        }
+      })
+      break
+    case 'getVersion':
+      event.reply('receiveMessage', {
+        bridgeName: 'version',
+        cid: message.cid,
+        data: app.getVersion(),
+      })
       break
     default:
       break
