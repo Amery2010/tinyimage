@@ -5,8 +5,55 @@ import './App.css'
 interface NativeFile extends File {
   path: string;
 }
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  webkitdirectory?: boolean | string;
+}
 
-function extractFileListPath (fileList: FileList) {
+function getFilesWebkitDataTransferItems (dataTransferItems: any) {
+  let files: any[] = []
+  console.log(dataTransferItems)
+  const traverseFileTreePromise = (item: any, path = '') => {
+    return new Promise(resolve => {
+      if (item.isFile) {
+        item.file((file: File) => {
+          console.log('File:', path + file.name)
+          if (/image\//.test(file.type)) {
+            files.push({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              fullPath: `${path}${file.name}`,
+              lastModified: file.lastModified,
+            })
+          }
+          resolve(file)
+        })
+      } else if (item.isDirectory) {
+        const dirReader = item.createReader()
+        dirReader.readEntries((entries: any) => {
+          const entriesPromises = []
+          for (let entr of entries) {
+            entriesPromises.push(traverseFileTreePromise(entr, `${path}${item.name}/`))
+          }
+          resolve(Promise.all(entriesPromises))
+        })
+      }
+    })
+  }
+
+  return new Promise((resolve, reject) => {
+    let entriesPromises = []
+    for (let item of dataTransferItems) {
+      entriesPromises.push(traverseFileTreePromise(item.webkitGetAsEntry()))
+    }
+    Promise.all(entriesPromises).then(() => {
+      resolve(files)
+    }).catch(err => reject(err))
+  })
+}
+
+function extractFileListPath (fileList: FileList | null): string[] {
+  if (!fileList) return []
   const fileListPath: string[] = Object.values(fileList).map(file => {
     const nativeFile = file as NativeFile
     return nativeFile.path
@@ -14,11 +61,11 @@ function extractFileListPath (fileList: FileList) {
   return fileListPath
 }
 
-function compress (fileList: FileList | null) {
+function compress (fileList: any[]): void {
   if (fileList) {
     const total = fileList.length
     let count = 0
-    extractFileListPath(fileList).forEach(path => {
+    fileList.forEach(path => {
       window.nativeBridge.invoke('minify', path, (err) => {
         if (err) {
           alert(err.message)
@@ -42,29 +89,49 @@ document.addEventListener('dragover', ev => {
 document.addEventListener('drop', ev => {
   ev.preventDefault()
   if (ev.dataTransfer) {
-    compress(ev.dataTransfer.files)
+    getFilesWebkitDataTransferItems(ev.dataTransfer.items).then((fileList: any) => {
+      const filePathList: string[] = []
+      fileList.forEach((item: any) => {
+        filePathList.push(item.fullPath)
+      })
+      compress(filePathList)
+    })
   }
 }, false)
 
-function App() {
+const FileInput: React.FC<InputProps> = props => {
   const fileInputElem = useRef<HTMLInputElement>(null)
 
-  const handleFilesChange = (ev: React.ChangeEvent) => {
-    const target = ev.currentTarget as HTMLInputElement
-    compress(target.files)
-  }
   const handleSelectFiles = () => {
     if (fileInputElem.current) {
       fileInputElem.current.click()
     }
+  }
+  return (
+    <>
+      <input ref={fileInputElem} {...props} />
+      <p className="tip">拖动文件到这里，或者<span className="select" onClick={handleSelectFiles}>浏览</span></p>
+    </>
+  )
+}
+
+function App () {
+  const handleFilesChange = (ev: React.ChangeEvent) => {
+    const target = ev.target as HTMLInputElement
+    compress(extractFileListPath(target.files))
   }
 
   return (
     <div id="app">
       <main>
         <img src={logo} className="logo" alt="logo" />
-        <input className="hidden" ref={fileInputElem} type="file" multiple onChange={handleFilesChange} />
-        <p className="tip">拖动文件到这里，或者<span className="select" onClick={handleSelectFiles}>浏览</span></p>
+        <FileInput
+          className="hidden"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFilesChange}
+        />
       </main>
     </div>
   )
