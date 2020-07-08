@@ -1,16 +1,15 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import logo from '../../assets/logo.svg'
 import './App.css'
 
-interface NativeFile extends File {
-  path: string;
-}
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  webkitdirectory?: boolean | string;
+function notification (title: string, content: string) {
+  return new Notification(title, {
+    body: content,
+  })
 }
 
 function getFilesWebkitDataTransferItems (dataTransferItems: any) {
-  let files: any[] = []
+  const files: any[] = []
   const traverseFileTreePromise = (item: any) => {
     return new Promise(resolve => {
       if (item.isFile) {
@@ -34,7 +33,7 @@ function getFilesWebkitDataTransferItems (dataTransferItems: any) {
   }
 
   return new Promise((resolve, reject) => {
-    let entriesPromises = []
+    const entriesPromises = []
     for (let item of dataTransferItems) {
       entriesPromises.push(traverseFileTreePromise(item.webkitGetAsEntry()))
     }
@@ -44,28 +43,18 @@ function getFilesWebkitDataTransferItems (dataTransferItems: any) {
   })
 }
 
-function extractFileListPath (fileList: FileList | null): string[] {
-  if (!fileList) return []
-  const fileListPath: string[] = Object.values(fileList).map(file => {
-    const nativeFile = file as NativeFile
-    return nativeFile.path
-  })
-  return fileListPath
-}
-
 function compress (fileList: any[]): void {
   if (fileList) {
     const total = fileList.length
     let count = 0
+    document.querySelector('.logo')?.classList.add('speedup')
     fileList.forEach(path => {
       window.nativeBridge.invoke('minify', path, (err) => {
-        if (err) {
-          alert(err.message)
-        } else {
-          console.log(path + ' 压缩成功！')
-        }
+        if (err) return notification('错误信息', err.message)
+        console.log(path + ' 压缩成功！')
         if (++count === total) {
-          alert('已完成全部文件的压缩！')
+          document.querySelector('.logo')?.classList.remove('speedup')
+          notification('任务信息', '已完成全部文件的压缩！')
         }
       })
     })
@@ -82,49 +71,27 @@ document.addEventListener('drop', ev => {
   ev.preventDefault()
   if (ev.dataTransfer) {
     getFilesWebkitDataTransferItems(ev.dataTransfer.items).then((fileList: any) => {
-      const filePathList: string[] = []
+      const filePaths: string[] = []
       fileList.forEach((item: any) => {
-        filePathList.push(item.path)
+        filePaths.push(item.path)
       })
-      compress(filePathList)
+      compress(filePaths)
     })
   }
 }, false)
 
-const FileInput: React.FC<InputProps> = props => {
-  const fileInputElem = useRef<HTMLInputElement>(null)
-
-  const handleSelectFiles = () => {
-    if (fileInputElem.current) {
-      fileInputElem.current.click()
-    }
-  }
-  return (
-    <>
-      <input ref={fileInputElem} {...props} />
-      <p className="tip">拖动文件到这里，或者<span className="select" onClick={handleSelectFiles}>浏览</span></p>
-    </>
-  )
-}
-
 function App () {
-  const handleFilesChange = (ev: React.ChangeEvent) => {
-    const target = ev.target as HTMLInputElement
-    const filePathList: string[] = extractFileListPath(target.files)
-    compress(filePathList)
+  const handleSelectFiles = () => {
+    window.nativeBridge.invoke('selectFiles', null, (err, filePaths) => {
+      if (err) return alert(err.message)
+      compress(filePaths)
+    })
   }
-
   return (
     <div id="app">
       <main>
         <img src={logo} className="logo" alt="logo" />
-        <FileInput
-          className="hidden"
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFilesChange}
-        />
+        <p className="tip">拖动文件到这里，或者<span className="select" onClick={handleSelectFiles}>浏览</span></p>
       </main>
     </div>
   )

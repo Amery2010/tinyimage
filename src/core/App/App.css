@@ -18,6 +18,9 @@
   .logo {
     animation: App-logo-spin infinite 20s linear;
   }
+  .logo.speedup {
+    animation: App-logo-spin infinite 1s linear;
+  }
 }
 
 main {

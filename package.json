@@ -1,6 +1,6 @@
 {
   "name": "tinyimage",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "author": "Amery<amery@xiangfa.org>",
   "description": "A tool to compress pictures.",
   "homepage": ".",
@@ -8,9 +8,8 @@
   "private": true,
   "scripts": {
     "start": "react-scripts start",
-    "electron": "electron build/electron.js",
+    "electron": "tsc -p electron/tsconfig.json && electron build/electron.js",
     "build": "react-scripts build && tsc -p electron/tsconfig.json",
-    "build:electron": "tsc -p electron/tsconfig.json",
     "test": "react-scripts test",
     "pack": "electron-builder --dir",
     "release": "electron-builder"

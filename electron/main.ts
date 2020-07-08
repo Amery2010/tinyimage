@@ -1,7 +1,8 @@
 import path from 'path'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 // import { menubar } from 'menubar'
 import minify from './libs/minify'
+import getFilePaths from './libs/getFilePaths'
 
 function createWindow () {
   // 创建浏览器窗口
@@ -78,6 +79,54 @@ ipcMain.on('postMessage', (event, message) => {
             },
           })
         }
+      }).catch(err => {
+        event.reply('receiveMessage', {
+          bridgeName: 'minify',
+          cid: message.cid,
+          error: {
+            code: 500,
+            message: err.message
+          },
+        })
+      })
+      break
+    case 'selectFiles':
+      const imageExt = ['jpg', 'jpeg', 'png', 'gif', 'svg']
+      dialog.showOpenDialog({
+        filters: [
+          { name: '图片文件', extensions: imageExt },
+        ],
+        properties: [
+          'openFile',
+          'openDirectory',
+          'multiSelections',
+          'treatPackageAsDirectory',
+        ]
+      }).then(result => {
+        if (result.canceled) {
+          event.reply('receiveMessage', {
+            bridgeName: 'selectFiles',
+            cid: message.cid,
+            data: [],
+          })
+        } else {
+          getFilePaths(result.filePaths, imageExt).then(result => {
+            event.reply('receiveMessage', {
+              bridgeName: 'selectFiles',
+              cid: message.cid,
+              data: result,
+            })
+          })
+        }
+      }).catch(err => {
+        event.reply('receiveMessage', {
+          bridgeName: 'selectFiles',
+          cid: message.cid,
+          error: {
+            code: 500,
+            message: err.message
+          },
+        })
       })
       break
     case 'getVersion':
