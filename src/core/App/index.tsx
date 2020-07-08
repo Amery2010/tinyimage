@@ -11,20 +11,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 function getFilesWebkitDataTransferItems (dataTransferItems: any) {
   let files: any[] = []
-  console.log(dataTransferItems)
-  const traverseFileTreePromise = (item: any, path = '') => {
+  const traverseFileTreePromise = (item: any) => {
     return new Promise(resolve => {
       if (item.isFile) {
         item.file((file: File) => {
-          console.log('File:', path + file.name)
           if (/image\//.test(file.type)) {
-            files.push({
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              fullPath: `${path}${file.name}`,
-              lastModified: file.lastModified,
-            })
+            files.push(file)
           }
           resolve(file)
         })
@@ -33,7 +25,7 @@ function getFilesWebkitDataTransferItems (dataTransferItems: any) {
         dirReader.readEntries((entries: any) => {
           const entriesPromises = []
           for (let entr of entries) {
-            entriesPromises.push(traverseFileTreePromise(entr, `${path}${item.name}/`))
+            entriesPromises.push(traverseFileTreePromise(entr))
           }
           resolve(Promise.all(entriesPromises))
         })
@@ -92,7 +84,7 @@ document.addEventListener('drop', ev => {
     getFilesWebkitDataTransferItems(ev.dataTransfer.items).then((fileList: any) => {
       const filePathList: string[] = []
       fileList.forEach((item: any) => {
-        filePathList.push(item.fullPath)
+        filePathList.push(item.path)
       })
       compress(filePathList)
     })
@@ -118,7 +110,8 @@ const FileInput: React.FC<InputProps> = props => {
 function App () {
   const handleFilesChange = (ev: React.ChangeEvent) => {
     const target = ev.target as HTMLInputElement
-    compress(extractFileListPath(target.files))
+    const filePathList: string[] = extractFileListPath(target.files)
+    compress(filePathList)
   }
 
   return (
