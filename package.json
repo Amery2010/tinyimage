@@ -1,6 +1,6 @@
 {
   "name": "tinyimage",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": "Amery<amery@xiangfa.org>",
   "description": "A tool to compress pictures.",
   "homepage": ".",
@@ -22,6 +22,7 @@
     }
   },
   "dependencies": {
+    "antd": "^4.4.3",
     "electron-util": "^0.14.2",
     "imagemin": "^7.0.1",
     "imagemin-gifsicle": "^7.0.0",
@@ -47,7 +48,7 @@
     "electron": "^9.0.3",
     "electron-builder": "^22.7.0",
     "react-scripts": "^3.4.1",
-    "rimraf": "^3.0.2",
+    "sass": "^1.26.10",
     "typescript": "^3.9.5"
   },
   "eslintConfig": {

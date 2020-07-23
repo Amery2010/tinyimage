@@ -1,6 +1,6 @@
 import React from 'react'
 import logo from '../../assets/logo.svg'
-import './App.css'
+import './App.scss'
 
 function notification (title: string, content: string) {
   return new Notification(title, {
@@ -79,6 +79,12 @@ document.addEventListener('drop', ev => {
     })
   }
 }, false)
+
+if (window.nativeBridge) {
+  window.nativeBridge.register('openSetting', (err, data) => {
+    alert('openSetting: ' + data)
+  })
+}
 
 function App () {
   const handleSelectFiles = () => {

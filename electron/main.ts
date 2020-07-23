@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 // import { menubar } from 'menubar'
 import minify from './libs/minify'
 import getFilePaths from './libs/getFilePaths'
+import { createMenu } from './core/menu'
 
 function createWindow () {
   // 创建浏览器窗口
@@ -39,6 +40,7 @@ function createWindow () {
 
   // 打开开发者工具
   // mainWindow.webContents.openDevTools()
+  createMenu(mainWindow)
 }
 
 ipcMain.on('postMessage', (event, message) => {
