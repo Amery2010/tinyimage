@@ -2,7 +2,7 @@ import path from 'path'
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 // import { menubar } from 'menubar'
 import minify from './libs/minify'
-import getFilePaths from './libs/getFilePaths'
+import getFileListInfor from './utils/getFileListInfor'
 import { createMenu } from './core/menu'
 
 function createWindow () {
@@ -49,17 +49,16 @@ ipcMain.on('postMessage', (event, message) => {
       minify(message.data).then(result => {
         if (result.status) {
           if (result.data) {
-            const data = result.data.map(item => {
-              return {
-                srcPath: item.sourcePath,
-                destPath: item.destinationPath,
-                length: item.data.length,
-              }
-            })
+            const item = result.data[0]
             event.reply('receiveMessage', {
               bridgeName: 'minify',
               cid: message.cid,
-              data,
+              data: {
+                srcPath: item.sourcePath,
+                destPath: item.destinationPath,
+                path: item.sourcePath,
+                size: item.data.length,
+              },
             })
           } else {
             event.reply('receiveMessage', {
@@ -112,7 +111,7 @@ ipcMain.on('postMessage', (event, message) => {
             data: [],
           })
         } else {
-          getFilePaths(result.filePaths, imageExt).then(result => {
+          getFileListInfor(result.filePaths, imageExt).then(result => {
             event.reply('receiveMessage', {
               bridgeName: 'selectFiles',
               cid: message.cid,

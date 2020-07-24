@@ -1,4 +1,5 @@
 import React from 'react'
+import formatSize from '../../utils/formatSize'
 import logo from '../../assets/logo.svg'
 import './App.scss'
 
@@ -43,18 +44,32 @@ function getFilesWebkitDataTransferItems (dataTransferItems: any) {
   })
 }
 
+type FileSizeStatus = {
+  before: number;
+  after: number;
+}
+let fileSizeStatus: FileSizeStatus = {
+  before: 0,
+  after: 0,
+}
 function compress (fileList: any[]): void {
   if (fileList) {
     const total = fileList.length
     let count = 0
+    fileSizeStatus = {
+      before: 0,
+      after: 0,
+    }
     document.querySelector('.logo')?.classList.add('speedup')
-    fileList.forEach(path => {
-      window.nativeBridge.invoke('minify', path, (err) => {
+    fileList.forEach(file => {
+      fileSizeStatus.before += file.size
+      window.nativeBridge.invoke('minify', file.path, (err, data) => {
         if (err) return notification('错误信息', err.message)
-        console.log(path + ' 压缩成功！')
+        fileSizeStatus.after += data.size
+        console.log(`${file.path}压缩成功！${file.size} -> ${data.size}`)
         if (++count === total) {
           document.querySelector('.logo')?.classList.remove('speedup')
-          notification('任务信息', '已完成全部文件的压缩！')
+          notification('任务信息', `已完成全部文件的压缩！体积-${((fileSizeStatus.before - fileSizeStatus.after) / fileSizeStatus.before * 100).toFixed(2)}%，共${formatSize(fileSizeStatus.before - fileSizeStatus.after)}`)
         }
       })
     })
@@ -71,11 +86,7 @@ document.addEventListener('drop', ev => {
   ev.preventDefault()
   if (ev.dataTransfer) {
     getFilesWebkitDataTransferItems(ev.dataTransfer.items).then((fileList: any) => {
-      const filePaths: string[] = []
-      fileList.forEach((item: any) => {
-        filePaths.push(item.path)
-      })
-      compress(filePaths)
+      compress(fileList)
     })
   }
 }, false)
@@ -88,9 +99,9 @@ if (window.nativeBridge) {
 
 function App () {
   const handleSelectFiles = () => {
-    window.nativeBridge.invoke('selectFiles', null, (err, filePaths) => {
+    window.nativeBridge.invoke('selectFiles', null, (err, fileList) => {
       if (err) return alert(err.message)
-      compress(filePaths)
+      compress(fileList)
     })
   }
   return (
