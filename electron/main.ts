@@ -1,6 +1,6 @@
 import path from 'path'
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-// import { menubar } from 'menubar'
+import { app, BrowserWindow, Menu, Tray, ipcMain, dialog } from 'electron'
+import { menubar } from 'menubar'
 import minify from './libs/minify'
 import getFileListInfor from './utils/getFileListInfor'
 import { createMenu } from './core/menu'
@@ -20,26 +20,31 @@ function createWindow () {
 
   mainWindow.loadFile(path.join(__dirname, '../index.html'))
 
-  // const menuBar = menubar({
-  //   index: `file://${path.join(__dirname, '../index.html')}`,
-  //   browserWindow: {
-  //     title: 'TinyImage',
-  //     width: 475,
-  //     height: 400,
-  //     webPreferences: {
-  //       nodeIntegration: true,
-  //       contextIsolation: true,
-  //       preload: path.join(__dirname, 'preload.js'),
-  //     },
-  //   }
-  // })
-  // menuBar.on('ready', () => {
-  //   console.log('app is ready');
-  //   // your app code here
-  // })
+  const tray = new Tray(path.join(__dirname, '../tray@2x.png'))
+  const contextMenu = Menu.buildFromTemplate([
+    { role: 'quit', label: '关闭' },
+  ])
+  tray.setToolTip('TinyImage')
+  tray.setContextMenu(contextMenu)
+  const menuBar = menubar({
+    index: `file://${path.join(__dirname, '../index.html')}`,
+    browserWindow: {
+      title: 'TinyImage',
+      width: 400,
+      height: 400,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: true,
+        preload: path.join(__dirname, 'preload.js'),
+      },
+    },
+    tray,
+  })
+  menuBar.on('ready', () => {
+    console.log('app is ready');
+    // your app code here
+  })
 
-  // 打开开发者工具
-  // mainWindow.webContents.openDevTools()
   createMenu(mainWindow)
 }
 

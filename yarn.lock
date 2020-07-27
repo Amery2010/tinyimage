@@ -1736,6 +1736,13 @@
   resolved "https://registry.npm.taobao.org/@types/json-schema/download/@types/json-schema-7.0.5.tgz?cache=0&sync_timestamp=1591720741205&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fjson-schema%2Fdownload%2F%40types%2Fjson-schema-7.0.5.tgz#dcce4430e64b443ba8945f0290fb564ad5bac6dd"
   integrity sha1-3M5EMOZLRDuolF8CkPtWStW6xt0=
 
+"@types/menubar@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.npm.taobao.org/@types/menubar/download/@types/menubar-6.0.1.tgz#ca5adcb1fa5569b0e59f11ecfde6442d07f59faa"
+  integrity sha1-ylrcsfpVabDlnxHs/eZELQf1n6o=
+  dependencies:
+    menubar "*"
+
 "@types/minimatch@*":
   version "3.0.3"
   resolved "https://registry.npm.taobao.org/@types/minimatch/download/@types/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
@@ -4724,6 +4731,11 @@ electron-is-dev@^1.1.0:
   version "1.2.0"
   resolved "https://registry.npm.taobao.org/electron-is-dev/download/electron-is-dev-1.2.0.tgz#2e5cea0a1b3ccf1c86f577cee77363ef55deb05e"
   integrity sha1-LlzqChs8zxyG9XfO53Nj71XesF4=
+
+electron-positioner@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.npm.taobao.org/electron-positioner/download/electron-positioner-4.1.0.tgz#e158f8f6aabd6725a8a9b4f2279b9504bcbea1b0"
+  integrity sha1-4Vj49qq9ZyWoqbTyJ5uVBLy+obA=
 
 electron-publish@22.7.0:
   version "22.7.0"
@@ -8293,6 +8305,13 @@ memory-fs@^0.5.0:
   dependencies:
     errno "^0.1.3"
     readable-stream "^2.0.1"
+
+menubar@*, menubar@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.npm.taobao.org/menubar/download/menubar-9.0.1.tgz#49d8d73ee0b515d6621d644fa96647e3dfc8ac3c"
+  integrity sha1-SdjXPuC1FdZiHWRPqWZH49/IrDw=
+  dependencies:
+    electron-positioner "^4.1.0"
 
 meow@^3.3.0:
   version "3.7.0"
