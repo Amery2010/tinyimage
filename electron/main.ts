@@ -1,13 +1,31 @@
 import path from 'path'
-import { app, BrowserWindow, Menu, Tray, ipcMain, dialog } from 'electron'
-import { menubar } from 'menubar'
-import minify from './libs/minify'
-import getFileListInfor from './utils/getFileListInfor'
+import { app, BrowserWindow, Menu, Tray } from 'electron'
 import { createMenu } from './core/menu'
+import './core/ipc'
+
+let mainWindow: Electron.BrowserWindow
+let tray: Electron.Tray
+let trayQuit = false
+const contextMenu = Menu.buildFromTemplate([
+  {
+    label: '打开',
+    click: () => {
+      mainWindow.show()
+    }
+  },
+  { role: 'about', label: '关于' },
+  {
+    label: '退出',
+    click: () => {
+      trayQuit = true
+      app.quit()
+    }
+  },
+])
 
 function createWindow () {
   // 创建浏览器窗口
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 400,
     height: 400,
     webPreferences: {
@@ -18,134 +36,24 @@ function createWindow () {
     },
   })
 
-  mainWindow.loadFile(path.join(__dirname, '../index.html'))
-
-  const tray = new Tray(path.join(__dirname, '../tray@2x.png'))
-  const contextMenu = Menu.buildFromTemplate([
-    { role: 'quit', label: '关闭' },
-  ])
+  tray = new Tray(path.join(__dirname, '../tray@2x.png'))
+  
   tray.setToolTip('TinyImage')
   tray.setContextMenu(contextMenu)
-  const menuBar = menubar({
-    index: `file://${path.join(__dirname, '../index.html')}`,
-    browserWindow: {
-      title: 'TinyImage',
-      width: 400,
-      height: 400,
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: true,
-        preload: path.join(__dirname, 'preload.js'),
-      },
-    },
-    tray,
-  })
-  menuBar.on('ready', () => {
-    console.log('app is ready');
-    // your app code here
+
+  mainWindow.loadFile(path.join(__dirname, '../index.html'))
+
+  mainWindow.on('close', (ev: Electron.Event) => {
+    if (mainWindow.isVisible() && !trayQuit) {
+      mainWindow.hide()
+      ev.preventDefault()
+    }
   })
 
   createMenu(mainWindow)
 }
 
-ipcMain.on('postMessage', (event, message) => {
-  switch (message.bridgeName) {
-    case 'minify':
-      minify(message.data).then(result => {
-        if (result.status) {
-          if (result.data) {
-            const item = result.data[0]
-            event.reply('receiveMessage', {
-              bridgeName: 'minify',
-              cid: message.cid,
-              data: {
-                srcPath: item.sourcePath,
-                destPath: item.destinationPath,
-                path: item.sourcePath,
-                size: item.data.length,
-              },
-            })
-          } else {
-            event.reply('receiveMessage', {
-              bridgeName: 'minify',
-              cid: message.cid,
-              error: {
-                code: 501,
-                message: '压缩失败！'
-              },
-            })
-          }
-        } else {
-          event.reply('receiveMessage', {
-            bridgeName: 'minify',
-            cid: message.cid,
-            error: {
-              code: 500,
-              message: result.error
-            },
-          })
-        }
-      }).catch(err => {
-        event.reply('receiveMessage', {
-          bridgeName: 'minify',
-          cid: message.cid,
-          error: {
-            code: 500,
-            message: err.message
-          },
-        })
-      })
-      break
-    case 'selectFiles':
-      const imageExt = ['jpg', 'jpeg', 'png', 'gif', 'svg']
-      dialog.showOpenDialog({
-        filters: [
-          { name: '图片文件', extensions: imageExt },
-        ],
-        properties: [
-          'openFile',
-          'openDirectory',
-          'multiSelections',
-          'treatPackageAsDirectory',
-        ]
-      }).then(result => {
-        if (result.canceled) {
-          event.reply('receiveMessage', {
-            bridgeName: 'selectFiles',
-            cid: message.cid,
-            data: [],
-          })
-        } else {
-          getFileListInfor(result.filePaths, imageExt).then(result => {
-            event.reply('receiveMessage', {
-              bridgeName: 'selectFiles',
-              cid: message.cid,
-              data: result,
-            })
-          })
-        }
-      }).catch(err => {
-        event.reply('receiveMessage', {
-          bridgeName: 'selectFiles',
-          cid: message.cid,
-          error: {
-            code: 500,
-            message: err.message
-          },
-        })
-      })
-      break
-    case 'getVersion':
-      event.reply('receiveMessage', {
-        bridgeName: 'version',
-        cid: message.cid,
-        data: app.getVersion(),
-      })
-      break
-    default:
-      break
-  }
-})
+
 
 // Electron会在初始化完成并且准备好创建浏览器窗口时调用这个方法
 // 部分 API 在 ready 事件触发后才能使用。
@@ -160,10 +68,10 @@ app.on('window-all-closed', function () {
   }
 })
 
-app.on('activate', function () {
-  // 在macOS上，当单击dock图标并且没有其他窗口打开时，
-  // 通常在应用程序中重新创建一个窗口。
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
-  }
-})
+// app.on('activate', function () {
+//   // 在macOS上，当单击dock图标并且没有其他窗口打开时，
+//   // 通常在应用程序中重新创建一个窗口。
+//   if (BrowserWindow.getAllWindows().length === 0) {
+//     createWindow()
+//   }
+// })

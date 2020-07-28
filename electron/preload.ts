@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { NativeBridge } from '../global.d'
+import { NativeBridge } from '../types'
 
 let cid = 0
 const callbacks: NativeBridge.Callbacks = {}
